@@ -31,7 +31,7 @@ def hit_back(x):
 	return False
 
 def hit_sides(x):
-	if y+radius>=display_height or y-radius<=0:
+	if y+radius>=display_height or y-radius<0:
 		return True
 	return False
 
@@ -44,7 +44,7 @@ def hit_paddle(x,y):
 	return False
 
 def out(x):
-	if x+radius<=0:
+	if x-radius<=0:
 		return True
 	return False
 
