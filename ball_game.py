@@ -3,146 +3,168 @@ import random
 
 pygame.init()
 
-display_width,display_height=1000,600
-paddle_x,paddle_y=5,5
-x,y=random.randint(100,900),random.randint(100,500)
-radius=10
-dx,dy=3,3
-paddle_width,paddle_height=5,50
-speed,score=50,0
-
-def start_Screen():
-	display=pygame.display.set_mode((display_width,display_height))
+def start_screen():
+	display=pygame.display.set_mode((display_length,display_width))
 	pygame.display.set_caption("Ball Game ...")
 	display.fill((0,0,0))
-	start=pygame.font.Font(None,36)
-	instruct=pygame.font.Font(None,24)
-	start=start.render("Welcome to the Game ...",True,(255,255,255))
-	instruct=instruct.render("Press 'S' to Start the Game, otherwise it will automatically start in 10 seconds",True,(255,255,255))
-	start_rect=start.get_rect(center=(int(display_width/2),int(display_height/2)))
-	instruct_rect=instruct.get_rect(center=(int(display_width/2),2*int(display_height/3)))
-	display.blit(start,start_rect)
-	display.blit(instruct,instruct_rect)
-	pygame.display.flip()
 
-def hit_back(x):
-	if x+radius>=display_width:
-		return True
-	return False
+	start_msg=pygame.font.Font(None,36)
+	start_msg=start_msg.render("Press 'S' to Start the Game and 'Q' to Quit the Game",True,(255,255,255))
+	start_rect=display.get_rect(center=(0.7*display_length,display_width))
+	display.blit(start_msg,start_rect)
 
-def hit_sides(x):
-	if y+radius>=display_height or y-radius<0:
-		return True
-	return False
+	instruct_msg=pygame.font.Font(None,24)
+	instruct_msg=instruct_msg.render("Game will Automatically Start in 10 Seconds ...",True,(255,255,255))
+	instruct_rect=display.get_rect(center=(0.85*display_length,1.15*display_width))
+	display.blit(instruct_msg,instruct_rect)
 
-def hit_paddle(x,y):
-	global speed,score
-	if y>=paddle_y and y<=paddle_y+paddle_height and x<=paddle_x+paddle_width:
-		speed+=1
-		score+=25
-		return True
-	return False
+	pygame.display.update()
 
-def out(x):
-	if x-radius<=0:
-		return True
-	return False
-
-def end_Screen():
+def end_screen():
 	global score
-	global display_height,display_width
-	display=pygame.display.set_mode((display_width,display_height))
+
+	display=pygame.display.set_mode((display_length,display_width))
 	pygame.display.set_caption("Ball Game ...")
 	display.fill((0,0,0))
-	end=pygame.font.Font(None,36)
-	end=end.render("Game Ended ...",True,(255,255,255))
-	end_rect=end.get_rect(center=(int(display_width/2),int(display_height/3)))
-	display.blit(end,end_rect)
-	final="Final Score : "+str(score)
-	end=pygame.font.Font(None,36)
-	end=end.render(final,True,(255,255,255))
-	end_rect=end.get_rect(center=(int(display_width/2),int(display_height/2)))
-	display.blit(end,end_rect)
-	instruct=pygame.font.Font(None,24)
-	instruct=instruct.render("Press Q to Quit",True,(255,255,255))
-	instruct_rect=instruct.get_rect(center=(int(display_width/2),int(0.65*display_height)))
-	display.blit(instruct,instruct_rect)
-	instruct=pygame.font.Font(None,24)
-	instruct=instruct.render("Press R to Restart",True,(255,255,255))
-	instruct_rect=instruct.get_rect(center=(int(display_width/2),int(0.75*display_height)))
-	display.blit(instruct,instruct_rect)
-	pygame.display.flip()	
+
+	score_msg=pygame.font.Font(None,36)
+	score_msg=score_msg.render("You Scored : "+str(score),True,(255,255,255))
+	score_rect=display.get_rect(center=(0.85*display_length,display_width))
+	display.blit(score_msg,score_rect)
+
+	restart_msg=pygame.font.Font(None,36)
+	restart_msg=restart_msg.render("Press 'R' to Restart the Game and 'Q' to Quit the Game",True,(255,255,255))
+	restart_rect=display.get_rect(center=(0.7*display_length,1.15*display_width))
+	display.blit(restart_msg,restart_rect)
+
+	pygame.display.update()
 
 def game():
-	global x,y,paddle_y,paddle_x,paddle_width,paddle_height,radius,dx,dy,speed
-	clock=pygame.time.Clock()
-	display=pygame.display.set_mode((display_width,display_height))
-	pygame.display.set_caption("Ball Game ...")
-	display.fill((0,0,0))
-	pygame.display.update()
+	global speed,score,paddle_length,paddle_width,paddle_x,paddle_y
+	global display_length,display_width,dx,dy,x,y
+
 	while True:
+		clock=pygame.time.Clock()
+
 		for event in pygame.event.get():
 			if event.type==pygame.KEYDOWN:
 				if event.key==pygame.K_q:
 					end()
+					pygame.quit()
+					break
+
 			elif event.type==pygame.QUIT:
 				end()
+				pygame.quit()
+				break
+
 		pressed=pygame.key.get_pressed()
+		
 		if pressed[pygame.K_UP] or pressed[pygame.K_w]:
-			if paddle_y-5>=0:
+			if paddle_y-5>=5:
 				paddle_y-=5
+
 		elif pressed[pygame.K_DOWN] or pressed[pygame.K_s]:
-			if paddle_y+paddle_height+5<display_height:
+			if paddle_y+paddle_length+55<=display_width:
 				paddle_y+=5
-		display.fill((0,0,0))
-		clock.tick(speed)
-		if hit_back(x) or hit_paddle(x,y):
+
+		if hit_back():
 			dx*=-1
-		if hit_sides(x):
+
+		if hit_side():
 			dy*=-1
-		if out(x):
+
+		if hit_paddle():
+			dx*=-1
+			speed+=25
+			score+=25
+
+		if out():
 			end()
-			exit()
+			break
+		
 		x+=dx
 		y+=dy
+
+		clock.tick(speed)
+
+		display=pygame.display.set_mode((display_length,display_width))
+		pygame.display.set_caption("Ball Game ...")
+		display.fill((0,0,0))
+
+		pygame.draw.rect(display,(255,255,255),pygame.Rect(paddle_x,paddle_y,paddle_length,paddle_width))
 		pygame.draw.circle(display,(255,255,255),(x,y),radius)
-		pygame.draw.rect(display,(255,255,255),(paddle_x,paddle_y,paddle_width,paddle_height))
+
 		pygame.display.update()
 
 def end():
 	end=True
+
 	while end==True:
-		end_Screen()
+		end_screen()
+		
 		for event in pygame.event.get():
 			if event.type==pygame.KEYDOWN:
-				if event.key==pygame.K_r:
+				if event.key==pygame.K_q:
+					end=False
+					exit()
+
+				elif event.key==pygame.K_r:
 					main()
-					end=False
-				elif event.key==pygame.K_q:
-					pygame.quit()
-					end=False
+					break
+
+			elif event.type==pygame.QUIT:
+				end=False
+				exit()
+
+def hit_back():
+	return x+radius>=display_length
+
+def hit_side():
+	return y-radius<=0 or y+radius>=display_width
+
+def hit_paddle():
+	return x-radius<paddle_x+paddle_length and y>=paddle_y and y<=paddle_y+paddle_width
+
+def out():
+	return x<=0 and (y<paddle_y or y>paddle_y+paddle_length) 
+
 def main():
-	global x,y,dx,dy,paddle_x,paddle_y,display_height,display_width,speed,score,radius,paddle_width,paddle_height
-	display_width,display_height=1000,600
+	global display_length,display_width,paddle_length,paddle_width
+	global paddle_x,paddle_y,x,y,radius,speed,score,dx,dy
+
+	display_length,display_width=1000,600
+	paddle_length,paddle_width=5,50
 	paddle_x,paddle_y=5,5
 	x,y=random.randint(100,900),random.randint(100,500)
 	radius=10
-	dx,dy=3,3
-	paddle_width,paddle_height=5,50
-	speed,score=50,0
+	speed=250
+	dx,dy=1,1
+	score=0
+
 	start=True
-	speed,score=50,0
 	wait=pygame.USEREVENT+1
-	pygame.time.set_timer(wait,10000)	
+	pygame.time.set_timer(wait,10000)
+
 	while start==True:
-		start_Screen()
+		start_screen()
+
 		for event in pygame.event.get():
 			if event.type==pygame.KEYDOWN:
 				if event.key==pygame.K_s:
 					start=False
+				elif event.key==pygame.K_q:
+					pygame.quit()
+					start=False
+					exit()
+			elif event.type==pygame.QUIT:
+				start=False
+				pygame.quit()
+				exit()
 			elif event.type==wait:
 				start=False
-	game()	
+
+	game()
 
 if __name__=='__main__':
 	main()
